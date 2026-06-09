@@ -1,92 +1,114 @@
-# Day 09 Multi Agents Architecture
+# Day 09 — Multi-Agent Shopping Assistant
 
-Mục tiêu của bạn là xây dựng một `shopping assistant` theo mô hình multi-agent bằng `LangGraph`, dùng LLM thật, RAG thật, và mock data local.
+Hệ thống Shopping Assistant theo mô hình multi-agent xây dựng bằng **LangGraph**, sử dụng LLM thật, RAG thật (ChromaDB + sentence-transformers), và mock data local.
 
-Bạn sẽ làm việc trong [src](/Users/duongnh59.al1/Documents/Project/Vin20K/Cohort2/Day-9-MultiAgent/src). Repo đã cung cấp:
+## Kiến trúc hệ thống
 
-- knowledge base ở [data/policy_mock_vi.md](/Users/duongnh59.al1/Documents/Project/Vin20K/Cohort2/Day-9-MultiAgent/data/policy_mock_vi.md)
-- mock data ở [data/order_customer_mock_data.json](/Users/duongnh59.al1/Documents/Project/Vin20K/Cohort2/Day-9-MultiAgent/data/order_customer_mock_data.json)
-- câu hỏi test ở [data/test.json](/Users/duongnh59.al1/Documents/Project/Vin20K/Cohort2/Day-9-MultiAgent/data/test.json)
-- rubric chấm điểm ở [Rubric.md](/Users/duongnh59.al1/Documents/Project/Vin20K/Cohort2/Day-9-MultiAgent/Rubric.md)
-- hướng dẫn chi tiết ở [Guide.md](/Users/duongnh59.al1/Documents/Project/Vin20K/Cohort2/Day-9-MultiAgent/Guide.md)
-
-## Your Mission
-
-Bạn cần hoàn thiện một hệ thống gồm:
-
-- `Supervisor Agent`
-- `Worker 1: Policy / RAG Agent`
-- `Worker 2: Order / Customer Lookup Agent`
-- `Worker 3: Response Agent`
-
-Luồng mong muốn:
-
-User  
-→ Supervisor  
-→ Policy worker và/hoặc Data worker  
-→ Response worker  
-→ Final answer
-
-## Technical Requirements
-
-- Dùng `LangGraph` để tổ chức flow multi-agent
-- Dùng `sentence-transformers/all-MiniLM-L6-v2` để tạo embeddings
-- Dùng `Chroma` làm vector store
-- Chunk policy theo đúng cấu trúc:
-  - `heading 2`
-  - `heading 3`
-  - `content của heading 3`
-- Có ít nhất 4 tools:
-  - `1` tool RAG search policy
-  - `3` tools lookup order/customer/voucher
-- Hỗ trợ đủ 3 nhóm câu hỏi:
-  - policy
-  - order/customer/voucher data
-  - câu hỏi kết hợp policy + data
-- Có xử lý:
-  - `clarification_needed`
-  - `not_found`
-
-## Student Starter Files
-
-Bắt đầu từ các file này:
-
-- [src/app/graph.py](/Users/duongnh59.al1/Documents/Project/Vin20K/Cohort2/Day-9-MultiAgent/src/app/graph.py)
-- [src/app/data_access.py](/Users/duongnh59.al1/Documents/Project/Vin20K/Cohort2/Day-9-MultiAgent/src/app/data_access.py)
-- [src/app/prompts.py](/Users/duongnh59.al1/Documents/Project/Vin20K/Cohort2/Day-9-MultiAgent/src/app/prompts.py)
-- [src/rag/parser.py](/Users/duongnh59.al1/Documents/Project/Vin20K/Cohort2/Day-9-MultiAgent/src/rag/parser.py)
-- [src/rag/vector_store.py](/Users/duongnh59.al1/Documents/Project/Vin20K/Cohort2/Day-9-MultiAgent/src/rag/vector_store.py)
-
-Provider abstraction và embedding loader đã có sẵn. Bạn cần hoàn thiện phần graph orchestration, tools, RAG indexing, retrieval, và batch testing.
-
-## Suggested Workflow
-
-1. Tạo `.env` với tối thiểu `LLM_MODEL` và `GOOGLE_API_KEY`.
-2. Cài dependencies từ [src/requirements.txt](/Users/duongnh59.al1/Documents/Project/Vin20K/Cohort2/Day-9-MultiAgent/src/requirements.txt).
-3. Hoàn thiện lookup tools trước.
-4. Hoàn thiện policy chunking và Chroma index.
-5. Hoàn thiện supervisor routing.
-6. Hoàn thiện response worker.
-7. Chạy test bằng `data/test.json`.
-8. Lưu trace JSON để debug flow.
-
-Ví dụ `.env`:
-
-```bash
-LLM_MODEL=gemini-3.1-flash-lite
-GOOGLE_API_KEY=your_key_here
+```
+User Input
+   │
+   ▼
+Supervisor Agent  ──────────────────────────────────────────┐
+   │ route: policy / data / both / clarification_needed     │
+   │                                                         │
+   ▼                 ▼                                       │
+Worker 1         Worker 2                                    │
+Policy/RAG       Data Lookup                                 │
+(ChromaDB)       (4 tools)                                   │
+   │                 │                                       │
+   └────────┬────────┘                                       │
+            ▼                                                │
+       Worker 3 Response ◄──────────────────────────────────┘
+            │
+            ▼
+      Final Answer
+   (Answer: / Evidence: / Status: not_found / Status: clarification_needed)
 ```
 
-## Run After You Finish The TODOs
+## Trạng thái hoàn thiện (Rubric)
 
-Ví dụ chạy 1 câu:
+| Tiêu chí | Điểm | Trạng thái |
+|---|---|---|
+| Supervisor Agent định tuyến đúng nhóm câu hỏi | 15 | ✅ |
+| Worker 1 — RAG thật trên policy markdown | 15 | ✅ |
+| Worker 2 — 4 tools nhỏ, rõ nhiệm vụ | 15 | ✅ |
+| Worker 3 — tổng hợp final answer | 15 | ✅ |
+| Chunking đúng cấu trúc H2 + H3 + content | 10 | ✅ |
+| ChromaDB + sentence-transformers/all-MiniLM-L6-v2 thật | 10 | ✅ |
+| Xử lý `clarification_needed` | 5 | ✅ |
+| Xử lý `not_found` | 5 | ✅ |
+| Batch test từ `data/test.json` | 10 | ✅ |
+| Citation rõ ràng cho policy chunks | 3 | ✅ |
+| Trace JSON debug từng bước graph | 3 | ✅ |
+| Provider abstraction (gemini/openai/openrouter/ollama/custom) | 2 | ✅ |
+| Prompt tách riêng từng agent | 2 | ✅ |
+| **Tổng** | **110** | **✅ 100%** |
+
+**Bonus ngoài rubric:** Web UI Streamlit, per-agent model overrides, query expansion, DeepSeek provider, OpenRouter provider.
+
+## Tài nguyên
+
+| File | Mô tả |
+|---|---|
+| [data/policy_mock_vi.md](data/policy_mock_vi.md) | Knowledge base chính sách mua sắm tiếng Việt |
+| [data/order_customer_mock_data.json](data/order_customer_mock_data.json) | Mock data khách hàng / đơn hàng / voucher |
+| [data/test.json](data/test.json) | 22 test case cho batch evaluation |
+| [Rubric.md](Rubric.md) | Thang điểm chấm bài |
+| [Guide.md](Guide.md) | Hướng dẫn chi tiết |
+| [src/README.md](src/README.md) | Tài liệu kỹ thuật mã nguồn |
+
+## Cài đặt
+
+```bash
+pip install -r src/requirements.txt
+```
+
+Tạo file `.env` tại thư mục gốc:
+
+```env
+LLM_MODEL=gemini-2.0-flash
+LLM_PROVIDER=gemini
+GOOGLE_API_KEY=your_key_here
+
+# Tuỳ chọn: cấu hình riêng từng agent
+# SUPERVISOR_MODEL=gemini-2.0-flash
+# POLICY_MODEL=gemini-2.0-flash
+# DATA_MODEL=gemini-2.0-flash
+# RESPONSE_MODEL=gemini-2.0-flash
+```
+
+Các provider hỗ trợ: `gemini`, `openai`, `deepseek`, `ollama`, `openrouter`, `custom`.
+
+## Chạy CLI
+
+Hỏi một câu:
 
 ```bash
 PYTHONPATH=src python -m app.cli --question "Đơn hàng 1971 có được hoàn trả không?"
 ```
 
-Ví dụ chạy batch:
+Batch test toàn bộ 22 câu hỏi:
 
 ```bash
 PYTHONPATH=src python -m app.cli --batch --test-file data/test.json
 ```
+
+Rebuild lại Chroma index rồi chạy batch:
+
+```bash
+PYTHONPATH=src python -m app.cli --batch --rebuild
+```
+
+## Chạy Web UI (Streamlit)
+
+```bash
+PYTHONPATH=src python -m streamlit run src/app_ui.py
+```
+
+Hoặc trên Windows, chạy thẳng file [run_ui.bat](run_ui.bat).
+
+Giao diện cung cấp:
+- Chat trực quan với trace suy luận của agent
+- Inspect RAG citations và dữ liệu tra cứu từng bước
+- Xem database mock (Customers & Orders)
+- Cấu hình LLM Provider, Model, Temperature, RAG Top-K trực tiếp trên sidebar
