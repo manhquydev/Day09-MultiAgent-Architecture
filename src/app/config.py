@@ -36,7 +36,7 @@ class Settings:
         root_dir = Path(__file__).resolve().parents[2]
         load_dotenv(root_dir / ".env")
 
-        raw_model = os.getenv("LLM_MODEL", "gemini-3.1-flash-lite")
+        raw_model = os.getenv("LLM_MODEL", "gemini-2.5-flash-lite")
         model = raw_model
         provider = os.getenv("LLM_PROVIDER") or _infer_provider(model)
 

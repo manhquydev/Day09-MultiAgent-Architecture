@@ -2,14 +2,41 @@ from __future__ import annotations
 
 
 def parse_policy_markdown(markdown_text: str) -> list[dict]:
-    # TODO:
-    # - parse markdown theo cấu trúc:
-    #   ## 4. Chính sách giao hàng
-    #   ### 4.3. Thời gian giao hàng dự kiến
-    #   content...
-    # - mỗi chunk cần giữ:
-    #   - section_h2
-    #   - section_h3
-    #   - citation
-    #   - rendered_text = H2 + H3 + content
-    raise NotImplementedError("Student TODO: chunk policy markdown for RAG")
+    lines = markdown_text.splitlines()
+    chunks = []
+    
+    current_h2 = None
+    current_h3 = None
+    current_content_lines = []
+    
+    def save_chunk():
+        nonlocal current_h2, current_h3, current_content_lines
+        if current_h2 and current_h3 and current_content_lines:
+            content = "\n".join(current_content_lines).strip()
+            if content:
+                rendered_text = f"## {current_h2}\n### {current_h3}\n{content}"
+                citation = f"{current_h2} > {current_h3}"
+                chunks.append({
+                    "section_h2": current_h2,
+                    "section_h3": current_h3,
+                    "citation": citation,
+                    "rendered_text": rendered_text
+                })
+            current_content_lines = []
+
+    for line in lines:
+        line_stripped = line.strip()
+        if line_stripped.startswith("## "):
+            save_chunk()
+            current_h2 = line_stripped[3:].strip()
+            current_h3 = None
+        elif line_stripped.startswith("### "):
+            save_chunk()
+            current_h3 = line_stripped[4:].strip()
+        else:
+            if current_h2 and current_h3:
+                current_content_lines.append(line)
+                
+    save_chunk()
+    return chunks
+
