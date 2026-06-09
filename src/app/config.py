@@ -30,13 +30,23 @@ class Settings:
     custom_llm_base_url: str | None
     custom_llm_api_key: str | None
     custom_llm_model: str | None
+    deepseek_api_key: str | None
+    deepseek_base_url: str
+    supervisor_provider: str | None
+    supervisor_model: str | None
+    policy_provider: str | None
+    policy_model: str | None
+    data_provider: str | None
+    data_model: str | None
+    response_provider: str | None
+    response_model: str | None
 
     @classmethod
     def load(cls) -> "Settings":
         root_dir = Path(__file__).resolve().parents[2]
         load_dotenv(root_dir / ".env")
 
-        raw_model = os.getenv("LLM_MODEL", "gemini-2.5-flash-lite")
+        raw_model = os.getenv("LLM_MODEL", "gemini-2.0-flash")
         model = raw_model
         provider = os.getenv("LLM_PROVIDER") or _infer_provider(model)
 
@@ -54,7 +64,7 @@ class Settings:
                 "EMBEDDING_MODEL",
                 "sentence-transformers/all-MiniLM-L6-v2",
             ),
-            top_k=int(os.getenv("RAG_TOP_K", "4")),
+            top_k=int(os.getenv("RAG_TOP_K", "6")),
             google_api_key=os.getenv("GOOGLE_API_KEY"),
             openai_api_key=os.getenv("OPENAI_API_KEY"),
             openrouter_api_key=os.getenv("OPENROUTER_API_KEY"),
@@ -68,7 +78,18 @@ class Settings:
             custom_llm_base_url=os.getenv("CUSTOM_LLM_BASE_URL"),
             custom_llm_api_key=os.getenv("CUSTOM_LLM_API_KEY"),
             custom_llm_model=os.getenv("CUSTOM_LLM_MODEL"),
+            deepseek_api_key=os.getenv("DEEPSEEK_API_KEY"),
+            deepseek_base_url=os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com/v1"),
+            supervisor_provider=os.getenv("SUPERVISOR_PROVIDER"),
+            supervisor_model=os.getenv("SUPERVISOR_MODEL"),
+            policy_provider=os.getenv("POLICY_PROVIDER"),
+            policy_model=os.getenv("POLICY_MODEL"),
+            data_provider=os.getenv("DATA_PROVIDER"),
+            data_model=os.getenv("DATA_MODEL"),
+            response_provider=os.getenv("RESPONSE_PROVIDER"),
+            response_model=os.getenv("RESPONSE_MODEL"),
         )
+
 
 
 def _infer_provider(model: str) -> str:

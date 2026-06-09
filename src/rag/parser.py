@@ -11,14 +11,18 @@ def parse_policy_markdown(markdown_text: str) -> list[dict]:
     
     def save_chunk():
         nonlocal current_h2, current_h3, current_content_lines
-        if current_h2 and current_h3 and current_content_lines:
+        if current_h2 and current_content_lines:
             content = "\n".join(current_content_lines).strip()
             if content:
-                rendered_text = f"## {current_h2}\n### {current_h3}\n{content}"
-                citation = f"{current_h2} > {current_h3}"
+                if current_h3:
+                    rendered_text = f"## {current_h2}\n### {current_h3}\n{content}"
+                    citation = f"{current_h2} > {current_h3}"
+                else:
+                    rendered_text = f"## {current_h2}\n{content}"
+                    citation = f"{current_h2}"
                 chunks.append({
                     "section_h2": current_h2,
-                    "section_h3": current_h3,
+                    "section_h3": current_h3 or "",
                     "citation": citation,
                     "rendered_text": rendered_text
                 })
@@ -34,7 +38,7 @@ def parse_policy_markdown(markdown_text: str) -> list[dict]:
             save_chunk()
             current_h3 = line_stripped[4:].strip()
         else:
-            if current_h2 and current_h3:
+            if current_h2:
                 current_content_lines.append(line)
                 
     save_chunk()

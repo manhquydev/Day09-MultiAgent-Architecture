@@ -44,17 +44,20 @@ class ShoppingDataStore:
             self.vouchers_by_customer[c_id].append(v)
 
     def get_customer_by_id(self, customer_id: str) -> dict[str, Any]:
+        customer_id = str(customer_id)
         if customer_id not in self.customer_by_id:
             return {"status": "not_found", "customer_id": customer_id}
         return {"status": "ok", "customer": self.customer_by_id[customer_id]}
 
     def get_orders_by_customer_id(self, customer_id: str, limit: int = 10) -> dict[str, Any]:
+        customer_id = str(customer_id)
         if customer_id not in self.customer_by_id:
             return {"status": "not_found", "customer_id": customer_id}
         orders = self.orders_by_customer.get(customer_id, [])[:limit]
         return {"status": "ok", "orders": orders}
 
     def get_order_detail_by_order_id(self, order_id: str) -> dict[str, Any]:
+        order_id = str(order_id)
         if order_id not in self.order_by_id:
             return {"status": "not_found", "order_id": order_id}
         return {"status": "ok", "order": self.order_by_id[order_id]}
@@ -64,6 +67,7 @@ class ShoppingDataStore:
         customer_id: str,
         only_active: bool = False,
     ) -> dict[str, Any]:
+        customer_id = str(customer_id)
         if customer_id not in self.customer_by_id:
             return {"status": "not_found", "customer_id": customer_id}
         vouchers = self.vouchers_by_customer.get(customer_id, [])

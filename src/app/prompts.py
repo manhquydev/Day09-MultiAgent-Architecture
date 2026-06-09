@@ -5,7 +5,7 @@ Phân loại câu hỏi thành các nhóm sau:
 1. Chỉ liên quan đến chính sách/policy (needs_policy=true, needs_data=false, status="ok"): Câu hỏi chung chung về chính sách giao hàng, kiểm hàng, đổi trả, hoàn tiền, voucher của hệ thống.
    Ví dụ: "Chính sách hoàn trả hàng ra sao?", "Khách có được kiểm hàng khi nhận không?"
 2. Chỉ liên quan đến dữ liệu/data (needs_policy=false, needs_data=true, status="ok"): Câu hỏi tra cứu thông tin cụ thể của khách hàng, đơn hàng, danh sách voucher khi đã có ID cụ thể.
-   Ví dụ: "Đơn hàng 1971 bao giờ được giao?", "Cho tôi xem danh sách đơn hàng của khách hàng C001", "Cho tôi xem voucher của khách hàng C999"
+   Ví dụ: "Đơn hàng 1971 bao giờ được giao?", "Cho tôi xem danh sách đơn hàng của khách hàng C001", "Cho tôi xem voucher của khách hàng C999", "Khách hàng C001 tối đa dùng bao nhiêu voucher mỗi tháng?", "Khách hàng C014 thuộc hạng gì?", "Customer C014 có những đơn nào gần đây?"
 3. Kết hợp cả hai/mixed (needs_policy=true, needs_data=true, status="ok"): Câu hỏi hỏi về một thực thể cụ thể (đơn hàng, voucher, khách hàng) nhưng cần đối chiếu hoặc áp dụng chính sách của hệ thống để trả lời.
    Ví dụ: "Đơn hàng 1971 có được hoàn trả không?", "Đơn hàng 2058 còn trong thời gian trả hàng không?"
 4. Cần làm rõ/clarification (status="clarification_needed"): Khi người dùng hỏi về thông tin riêng tư (như voucher của tôi, đơn hàng của tôi) mà câu hỏi KHÔNG cung cấp bất kỳ mã khách hàng (ví dụ: C001) hay mã đơn hàng (ví dụ: 1971) để định danh.
@@ -31,6 +31,7 @@ Nhiệm vụ của bạn là sử dụng kết quả tìm kiếm từ RAG (searc
 
 Yêu cầu:
 - Luôn chỉ ra các thông tin chính xác từ tài liệu chính sách.
+- **QUAN TRỌNG**: Luôn đề cập rõ ràng các mốc thời gian cụ thể nếu có trong chính sách (ví dụ: "15 ngày", "24 giờ", "7 ngày", số ngày hoàn trả, thời hạn khiếu nại, v.v.).
 - Trích dẫn (citation) chính xác tên các mục đã tham khảo dưới dạng danh sách, ví dụ: ["5. Chính sách đổi trả và hoàn tiền > 5.1. Điều kiện chung để gửi yêu cầu"].
 - Trình bày thông tin tóm tắt rõ ràng bằng tiếng Việt.
 
@@ -66,7 +67,7 @@ Nhiệm vụ của bạn là kết hợp các thông tin từ Supervisor, Policy
 Yêu cầu về định dạng đầu ra (chọn đúng 1 trong 3 định dạng dưới đây):
 
 1. Khi xử lý thành công (status của các worker là ok):
-Answer: [Câu trả lời chi tiết, mạch lạc, kết hợp thông tin chính sách và dữ liệu đơn hàng nếu có]
+Answer: [Câu trả lời chi tiết, mạch lạc, kết hợp thông tin chính sách và dữ liệu đơn hàng nếu có. Đặc biệt, nếu đơn hàng chưa giao thành công (đang vận chuyển/in_transit), hãy chỉ rõ trong câu trả lời là "chưa thể" bắt đầu quy trình trả hàng thông thường theo chính sách]
 Evidence:
 - Policy: [Mô tả ngắn gọn điều khoản chính sách áp dụng và trích dẫn các mục đã tham khảo dưới dạng (Mục H2 > Mục H3)]
 - Order data: [Liệt kê các thông tin đơn hàng/khách hàng cụ thể đã dùng để đối chiếu]

@@ -12,6 +12,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--test-file", default="data/test.json")
     parser.add_argument("--trace-file", default=None)
     parser.add_argument("--batch", action="store_true")
+    parser.add_argument("--rebuild", action="store_true", help="Force rebuild the policy vector index.")
     return parser
 
 
@@ -29,7 +30,7 @@ def main() -> None:
         summary = assistant.run_batch(
             test_file=test_file_path,
             output_dir=output_dir,
-            rebuild_index=False
+            rebuild_index=args.rebuild
         )
         print("\n--- BATCH RUN SUMMARY ---")
         print(f"Total Cases:  {summary['total_cases']}")
